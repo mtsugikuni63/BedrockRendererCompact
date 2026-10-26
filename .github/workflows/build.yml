@@ -1,0 +1,35 @@
+
+name: Build iOS ARM64 dylib
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build demo dylib
+        run: |
+          SDK_PATH="$(xcrun --sdk iphoneos --show-sdk-path)"
+          mkdir -p build
+          xcrun --sdk iphoneos clang \
+            -dynamiclib \
+            -arch arm64 \
+            -isysroot "$SDK_PATH" \
+            -miphoneos-version-min=15.0 \
+            -fobjc-arc \
+            -framework Foundation \
+            src/RendererCompat.m \
+            -o build/BedrockRendererCompat.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BedrockRendererCompat-unsigned-arm64
+          path: build/BedrockRendererCompat.dylib
